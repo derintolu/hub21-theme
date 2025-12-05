@@ -28,6 +28,7 @@ add_filter('body_class', function($classes) {
 </head>
 <body <?php body_class(); ?>>
 
+<div data-wp-interactive="lrh-portal">
 <?php
 // Include the portal sidebar frame
 include get_stylesheet_directory() . '/portal-sidebar-frame.php';
@@ -36,12 +37,15 @@ include get_stylesheet_directory() . '/portal-sidebar-frame.php';
 if (have_posts()) {
     the_post();
     ?>
-    <div id="main-container" data-wp-interactive="lrh-portal" data-wp-router-region="portal-content">
+    <div id="main-container" data-wp-router-region="portal-content">
         <?php the_content(); ?>
     </div>
     <?php
 }
+?>
+</div>
 
+<?php
 wp_footer();
 ?>
 
