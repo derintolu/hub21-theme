@@ -376,7 +376,7 @@ class Portal_Nav_Walker extends Walker_Nav_Menu {
 
                 // Parent with clickable link AND dropdown toggle
                 $output .= '<div class="flex items-center">';
-                $output .= '<a href="' . esc_url($item->url) . '" data-wp-router-link class="flex items-center gap-2 px-4 py-3 text-base font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors frs-nav-link flex-1' . $active_class . '">';
+                $output .= '<a href="' . esc_url($item->url) . '" class="flex items-center gap-2 px-4 py-3 text-base font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors frs-nav-link flex-1' . $active_class . '">';
                 $output .= $this->get_icon_svg($icon);
                 $output .= '<span>' . esc_html($item->title) . '</span>';
                 $output .= '</a>';
