@@ -1,0 +1,194 @@
+/*!
+Theme Name: Blocksy Child - FRS
+Theme URI: https://creativethemes.com/blocksy/
+Description: Blocksy child theme with custom React sidebar for FRS
+Author: FRS Development Team
+Author URI: https://frs.works
+Template: blocksy
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: blocksy-child-frs
+*/
+
+/* React sidebar container styles */
+#frs-react-sidebar {
+    margin-bottom: 1.5rem;
+}
+
+/* WordPress widgets slot */
+.frs-wp-widgets-slot {
+    margin-top: 1rem;
+}
+
+/* Ensure proper spacing in Blocksy sidebar structure */
+.ct-sidebar .frs-sidebar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ==========================================================================
+   Sidebar Edge-to-Edge Fix
+   Extends the sidebar container to reach viewport edge (left: 0 or right: 0)
+   Uses CSS custom property for container max-width offset calculation
+   ========================================================================== */
+
+@media (min-width: 1000px) {
+    /* Calculate the container offset (margin from viewport edge) */
+    :root {
+        /* Blocksy's container max-width - check Customizer > General > Container Width */
+        --ct-container-max-width: 1478px;
+        /* Offset = (viewport - max-width) / 2, but with min of 0 */
+        --container-offset: max(0px, calc((100vw - var(--ct-container-max-width)) / 2));
+    }
+
+    /* Left sidebar: extend aside to viewport edge and widen content */
+    [data-sidebar="left"] > aside {
+        /* Pull to left edge */
+        margin-left: calc(var(--container-offset) * -1) !important;
+        /* Start at bottom of nav bar (no negative margin) */
+        margin-top: 0 !important;
+        /* Widen the aside to include the offset */
+        width: calc(100% + var(--container-offset)) !important;
+        /* Equal padding on all interior sides */
+        padding: 20px !important;
+    }
+
+    /* Make sidebar content fill the wider aside */
+    [data-sidebar="left"] > aside .ct-sidebar {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    /* Override the React sidebar grid layout (ID selector for specificity) */
+    [data-sidebar="left"] > aside #frs-react-sidebar {
+        display: block !important;
+        grid-template-columns: none !important;
+    }
+
+    /* Expand all widgets and content inside the sidebar */
+    [data-sidebar="left"] > aside .ct-sidebar > *,
+    [data-sidebar="left"] > aside .ct-widget,
+    [data-sidebar="left"] > aside #frs-react-sidebar,
+    [data-sidebar="left"] > aside #frs-react-sidebar > *,
+    [data-sidebar="left"] > aside .frs-sidebar,
+    [data-sidebar="left"] > aside .frs-sidebar > *,
+    [data-sidebar="left"] > aside .frs-sidebar-section,
+    [data-sidebar="left"] > aside .frs-profile-card {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Right sidebar: extend aside to viewport edge and widen content */
+    [data-sidebar="right"] > aside {
+        /* Pull to right edge */
+        margin-right: calc(var(--container-offset) * -1) !important;
+        /* Start at bottom of nav bar (no negative margin) */
+        margin-top: 0 !important;
+        /* Widen the aside to include the offset */
+        width: calc(100% + var(--container-offset)) !important;
+        /* Equal padding on all interior sides */
+        padding: 20px !important;
+    }
+
+    /* Make sidebar content fill the wider aside */
+    [data-sidebar="right"] > aside .ct-sidebar {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    /* Override the React sidebar grid layout (ID selector for specificity) */
+    [data-sidebar="right"] > aside #frs-react-sidebar {
+        display: block !important;
+        grid-template-columns: none !important;
+    }
+
+    /* Expand all widgets and content inside the sidebar */
+    [data-sidebar="right"] > aside .ct-sidebar > *,
+    [data-sidebar="right"] > aside .ct-widget,
+    [data-sidebar="right"] > aside #frs-react-sidebar,
+    [data-sidebar="right"] > aside #frs-react-sidebar > *,
+    [data-sidebar="right"] > aside .frs-sidebar,
+    [data-sidebar="right"] > aside .frs-sidebar > *,
+    [data-sidebar="right"] > aside .frs-sidebar-section,
+    [data-sidebar="right"] > aside .frs-profile-card {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Ensure parent containers don't clip the extended sidebar */
+    [data-sidebar] {
+        overflow: visible !important;
+    }
+
+    .ct-container {
+        overflow: visible !important;
+    }
+
+    #main-container {
+        overflow-x: clip !important;
+    }
+
+    /* ==========================================================================
+       Sidebar Independent Scroll
+       Sticky container with scrollable internal content
+       ========================================================================== */
+
+    /* Make the aside sticky but NOT scrollable itself */
+    [data-sidebar="left"] > aside,
+    [data-sidebar="right"] > aside {
+        position: sticky !important;
+        top: 0 !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        align-self: start !important;
+    }
+
+    /* Make the internal content scrollable - override Blocksy's sticky */
+    [data-sidebar="left"] > aside .ct-sidebar,
+    [data-sidebar="right"] > aside .ct-sidebar {
+        position: relative !important;
+        top: auto !important;
+        height: calc(100vh - 80px) !important;
+        max-height: calc(100vh - 80px) !important;
+        overflow-y: scroll !important;
+        overflow-x: hidden !important;
+        padding-bottom: 40px !important;
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    /* Custom scrollbar styling for sidebar content - more visible */
+    [data-sidebar="left"] > aside .ct-sidebar::-webkit-scrollbar,
+    [data-sidebar="right"] > aside .ct-sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    [data-sidebar="left"] > aside .ct-sidebar::-webkit-scrollbar-track,
+    [data-sidebar="right"] > aside .ct-sidebar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+
+    [data-sidebar="left"] > aside .ct-sidebar::-webkit-scrollbar-thumb,
+    [data-sidebar="right"] > aside .ct-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+
+    [data-sidebar="left"] > aside .ct-sidebar::-webkit-scrollbar-thumb:hover,
+    [data-sidebar="right"] > aside .ct-sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    /* Firefox scrollbar styling */
+    [data-sidebar="left"] > aside .ct-sidebar,
+    [data-sidebar="right"] > aside .ct-sidebar {
+        scrollbar-width: auto;
+        scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
+    }
+}
