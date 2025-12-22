@@ -25,6 +25,11 @@ define('BLOCKSY_CHILD_FRS_PATH', get_stylesheet_directory());
 define('BLOCKSY_CHILD_FRS_URL', get_stylesheet_directory_uri());
 
 /**
+ * Load includes
+ */
+require_once BLOCKSY_CHILD_FRS_PATH . '/includes/sidebar-insights-slider.php';
+
+/**
  * Tell frs-lrg to load portal assets on portal pages (using theme template, not shortcode in post content)
  */
 add_filter('lrh_should_load_portal', function($should_load) {
@@ -35,7 +40,7 @@ add_filter('lrh_should_load_portal', function($should_load) {
 });
 
 /**
- * Register custom sidebar widget area
+ * Register custom sidebar widget areas
  */
 add_action('widgets_init', function () {
     register_sidebar(array(
@@ -46,6 +51,16 @@ add_action('widgets_init', function () {
         'after_widget'  => '</div>',
         'before_title'  => '<h3 class="widget-title">',
         'after_title'   => '</h3>',
+    ));
+
+    register_sidebar(array(
+        'name'          => __('Portal Sidebar Header', 'blocksy-child-frs'),
+        'id'            => 'portal-sidebar-header',
+        'description'   => __('16:9 header area at top of portal sidebar. Use Cover block for image/video backgrounds.', 'blocksy-child-frs'),
+        'before_widget' => '<div id="%1$s" class="widget portal-header-widget %2$s">',
+        'after_widget'  => '</div>',
+        'before_title'  => '',
+        'after_title'   => '',
     ));
 });
 
@@ -320,6 +335,15 @@ add_action('blocksy:header:after', function () {
 });
 
 /**
+ * Include Portal Sidebar Frame via Blocksy hook
+ */
+add_action('blocksy:header:after', function () {
+    if (blocksy_child_is_portal_page()) {
+        include get_stylesheet_directory() . '/portal-sidebar-frame.php';
+    }
+});
+
+/**
  * Add JavaScript to handle sidebar scroll
  * Ensures sidebar scrolls independently when user hovers and scrolls
  */
@@ -457,7 +481,7 @@ function blocksy_child_is_portal_page() {
     // This works during wp_enqueue_scripts, unlike is_singular()
     $queried_object = get_queried_object();
     if ($queried_object && isset($queried_object->post_type)) {
-        $portal_post_types = array('lo_portal_page', 'frs_re_portal', 'frs_partner_portal');
+        $portal_post_types = array('lo_portal_page', 'frs_re_portal', 'frs_partner_portal', 'workspace');
         if (in_array($queried_object->post_type, $portal_post_types)) {
             return true;
         }
@@ -617,11 +641,6 @@ add_action('template_redirect', function() {
             overflow: hidden;
         }
 
-        body.portal-frame .ct-header,
-        body.portal-frame header[data-id] {
-            display: none !important;
-        }
-
         body.portal-frame #main-container {
             margin-top: 0 !important;
             padding-top: 0 !important;
@@ -758,21 +777,6 @@ add_filter('body_class', function($classes) {
     return $classes;
 });
 
-// Include Portal Sidebar Frame on portal pages
-add_action('wp_body_open', function() {
-    if (!blocksy_child_is_portal_page()) {
-        return;
-    }
-
-    // Don't include old sidebar on frs_re_portal pages - they have their own React sidebar
-    $queried_object = get_queried_object();
-    if ($queried_object && isset($queried_object->post_type) && $queried_object->post_type === 'frs_re_portal') {
-        return;
-    }
-
-    // Include the persistent sidebar frame
-    include get_stylesheet_directory() . '/portal-sidebar-frame.php';
-});
 
 /**
  * Interactivity API for Portal Navigation

@@ -85,8 +85,6 @@ if ($total_fields > 0) {
     $profile_completion = round(($completed_fields / $total_fields) * 100);
 }
 
-$profile_slug = $current_user->user_nicename;
-
 // Get user role
 $user_roles = $current_user->roles;
 $role = '';
@@ -101,32 +99,11 @@ if (in_array('loan_officer', $user_roles)) {
 
 <div id="portal-sidebar-root" class="overflow-hidden scrollbar-hide flex flex-col" style="height: calc(100dvh - 60px); background-color: #0B102C;">
 
-    <!-- Gradient Header with Avatar (Horizontal Layout) -->
-    <div class="relative overflow-hidden" style="background-color: #0B102C; width: 320px; height: 100px;">
-        <!-- Animated Video Background -->
-        <?php if ($gradient_url): ?>
-        <video autoplay muted loop playsinline class="absolute inset-0 object-cover" style="z-index: 0; width: 320px; height: 100px;">
-            <source src="<?php echo esc_url($gradient_url); ?>" type="video/mp4">
-        </video>
-        <!-- Glassy overlay -->
-        <div class="absolute inset-0" style="z-index: 1; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);"></div>
+    <!-- 16:9 Header Widget Area -->
+    <div class="portal-sidebar-header-widget">
+        <?php if (is_active_sidebar('portal-sidebar-header')) : ?>
+            <?php dynamic_sidebar('portal-sidebar-header'); ?>
         <?php endif; ?>
-
-        <!-- Avatar and Name - Horizontal Layout -->
-        <div class="relative w-full h-full px-4 flex items-center justify-center gap-3" style="z-index: 10;">
-            <!-- Avatar -->
-            <div class="flex-shrink-0">
-                <div class="w-[42px] h-[42px] rounded-full overflow-hidden shadow-lg border-2 border-white/20">
-                    <img src="<?php echo esc_url($user_avatar); ?>" alt="<?php echo esc_attr($user_name); ?>" class="w-full h-full object-cover">
-                </div>
-            </div>
-
-            <!-- Name and Title -->
-            <div class="flex-1 min-w-0">
-                <h3 class="font-bold text-white text-base mb-0.5 truncate"><?php echo esc_html($user_name); ?></h3>
-                <p class="font-normal text-white text-sm truncate"><?php echo esc_html($user_job_title); ?></p>
-            </div>
-        </div>
     </div>
 
     <!-- Sidebar content - split into scrollable menu and fixed bottom widgets -->
@@ -175,32 +152,30 @@ if (in_array('loan_officer', $user_roles)) {
                 </div>
             </div>
 
-            <!-- Profile Link Widget -->
-            <div class="px-4 py-3" style="background-color: #0B102C;">
-                <div class="text-xs font-semibold text-white uppercase tracking-wider mb-2">Profile Link</div>
-                <div class="text-sm text-white mb-2 p-2 bg-white/10 rounded border border-[#0B102C] truncate">
-                    <?php echo esc_html($profile_slug); ?>
+            <!-- Profile Header with Avatar (Horizontal Layout) - Bottom -->
+            <div class="relative w-full h-20 px-4 flex items-center gap-3" style="background-color: #0B102C;">
+                <!-- Glassy overlay -->
+                <div class="absolute inset-0" style="z-index: 1; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);"></div>
+
+                <!-- Avatar -->
+                <div class="relative flex-shrink-0" style="z-index: 10;">
+                    <div class="w-[42px] h-[42px] rounded-full overflow-hidden shadow-lg border-2 border-white/20">
+                        <img src="<?php echo esc_url($user_avatar); ?>" alt="<?php echo esc_attr($user_name); ?>" class="w-full h-full object-cover">
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="copyProfileLink()" class="flex-1 px-3 py-2 text-sm font-medium text-white bg-slate-500 hover:bg-slate-400 rounded-md transition-colors flex items-center justify-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                        Copy
-                    </button>
-                    <button onclick="openProfileLink()" class="flex-1 px-3 py-2 text-sm font-medium text-white bg-slate-500 hover:bg-slate-400 rounded-md transition-colors flex items-center justify-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-                        Open
-                    </button>
+
+                <!-- Name and Title -->
+                <div class="relative flex-1 min-w-0" style="z-index: 10;">
+                    <h3 class="font-bold text-white text-base mb-0.5 truncate"><?php echo esc_html($user_name); ?></h3>
+                    <p class="font-normal text-white/70 text-sm truncate"><?php echo esc_html($user_job_title); ?></p>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
 <script>
-// Profile data from PHP
-const profileSlug = <?php echo json_encode($profile_slug); ?>;
-const profileUrl = window.location.origin + '/directory/' + profileSlug;
-
 // Toggle menu function
 function toggleMenu(menuId, event) {
     const menu = document.getElementById('menu-' + menuId);
@@ -216,29 +191,6 @@ function toggleMenu(menuId, event) {
         menu.style.display = 'none';
         if (chevron) chevron.style.transform = 'rotate(0deg)';
     }
-}
-
-// Copy profile link
-function copyProfileLink() {
-    navigator.clipboard.writeText(profileUrl).then(() => {
-        showToast('Profile link copied!');
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-    });
-}
-
-// Open profile link
-function openProfileLink() {
-    window.open(profileUrl, '_blank', 'noopener,noreferrer');
-}
-
-// Show toast notification
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
 }
 
 // Set active link based on current URL and auto-expand parent menus
@@ -279,6 +231,39 @@ window.addEventListener('popstate', setActiveLink);
 </script>
 
 <style>
+/* Portal Sidebar Header Widget - 16:9 edge-to-edge */
+.portal-sidebar-header-widget {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.portal-sidebar-header-widget .widget {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.portal-sidebar-header-widget .widget > * {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.portal-sidebar-header-widget .wp-block-cover {
+    min-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+
+.portal-sidebar-header-widget .wp-block-cover__inner-container {
+    padding: 1rem;
+}
+
 /* Active link styling with darker shading */
 .frs-nav-link.active {
     background: rgba(255, 255, 255, 0.15) !important;

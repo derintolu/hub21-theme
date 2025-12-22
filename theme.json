@@ -1,0 +1,228 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": true,
+		"useRootPaddingAwareAlignments": true,
+		"layout": {
+			"contentSize": "1200px",
+			"wideSize": "1400px"
+		},
+		"color": {
+			"palette": [
+				{
+					"slug": "portal-dark",
+					"color": "#0B102C",
+					"name": "Portal Dark"
+				},
+				{
+					"slug": "portal-header",
+					"color": "#dce2eb",
+					"name": "Portal Header"
+				},
+				{
+					"slug": "portal-border",
+					"color": "#a8b4c8",
+					"name": "Portal Border"
+				},
+				{
+					"slug": "portal-accent",
+					"color": "#2563eb",
+					"name": "Portal Accent"
+				},
+				{
+					"slug": "portal-success",
+					"color": "#10b981",
+					"name": "Portal Success"
+				},
+				{
+					"slug": "portal-warning",
+					"color": "#f59e0b",
+					"name": "Portal Warning"
+				},
+				{
+					"slug": "white",
+					"color": "#ffffff",
+					"name": "White"
+				},
+				{
+					"slug": "white-70",
+					"color": "rgba(255, 255, 255, 0.7)",
+					"name": "White 70%"
+				},
+				{
+					"slug": "white-50",
+					"color": "rgba(255, 255, 255, 0.5)",
+					"name": "White 50%"
+				},
+				{
+					"slug": "white-10",
+					"color": "rgba(255, 255, 255, 0.1)",
+					"name": "White 10%"
+				},
+				{
+					"slug": "white-5",
+					"color": "rgba(255, 255, 255, 0.05)",
+					"name": "White 5%"
+				}
+			],
+			"gradients": [
+				{
+					"slug": "portal-gradient",
+					"gradient": "linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)",
+					"name": "Portal Gradient"
+				},
+				{
+					"slug": "portal-dark-gradient",
+					"gradient": "linear-gradient(180deg, #0B102C 0%, #1a1f3c 100%)",
+					"name": "Portal Dark Gradient"
+				}
+			]
+		},
+		"typography": {
+			"fluid": true,
+			"fontFamilies": [
+				{
+					"fontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif",
+					"slug": "system",
+					"name": "System"
+				}
+			],
+			"fontSizes": [
+				{
+					"slug": "xs",
+					"size": "0.75rem",
+					"name": "Extra Small"
+				},
+				{
+					"slug": "sm",
+					"size": "0.875rem",
+					"name": "Small"
+				},
+				{
+					"slug": "base",
+					"size": "1rem",
+					"name": "Base"
+				},
+				{
+					"slug": "md",
+					"size": "1.125rem",
+					"name": "Medium"
+				},
+				{
+					"slug": "lg",
+					"size": "1.25rem",
+					"name": "Large"
+				},
+				{
+					"slug": "xl",
+					"size": "1.5rem",
+					"name": "Extra Large"
+				},
+				{
+					"slug": "2xl",
+					"size": "2rem",
+					"name": "2X Large"
+				}
+			]
+		},
+		"spacing": {
+			"units": ["px", "rem", "%", "vw", "vh"],
+			"spacingScale": {
+				"steps": 10
+			},
+			"spacingSizes": [
+				{
+					"slug": "10",
+					"size": "0.25rem",
+					"name": "1"
+				},
+				{
+					"slug": "20",
+					"size": "0.5rem",
+					"name": "2"
+				},
+				{
+					"slug": "30",
+					"size": "0.75rem",
+					"name": "3"
+				},
+				{
+					"slug": "40",
+					"size": "1rem",
+					"name": "4"
+				},
+				{
+					"slug": "50",
+					"size": "1.5rem",
+					"name": "5"
+				},
+				{
+					"slug": "60",
+					"size": "2rem",
+					"name": "6"
+				},
+				{
+					"slug": "70",
+					"size": "3rem",
+					"name": "7"
+				},
+				{
+					"slug": "80",
+					"size": "4rem",
+					"name": "8"
+				}
+			]
+		},
+		"custom": {
+			"sidebar": {
+				"width": "320px",
+				"widthCollapsed": "64px",
+				"background": "#0B102C",
+				"headerHeight": "80px",
+				"portalHeaderHeight": "60px",
+				"zIndex": "100",
+				"transition": "all 0.3s ease"
+			},
+			"glass": {
+				"background": "rgba(255, 255, 255, 0.1)",
+				"backdropFilter": "blur(2px)"
+			},
+			"borderRadius": {
+				"sm": "4px",
+				"md": "8px",
+				"lg": "12px",
+				"full": "9999px"
+			}
+		}
+	},
+	"styles": {
+		"color": {
+			"background": "var(--wp--preset--color--white)",
+			"text": "var(--wp--preset--color--portal-dark)"
+		},
+		"elements": {
+			"link": {
+				"color": {
+					"text": "var(--wp--preset--color--portal-accent)"
+				},
+				":hover": {
+					"color": {
+						"text": "var(--wp--preset--color--portal-dark)"
+					}
+				}
+			}
+		},
+		"blocks": {
+			"core/button": {
+				"border": {
+					"radius": "var(--wp--custom--border-radius--md)"
+				},
+				"color": {
+					"background": "var(--wp--preset--color--portal-accent)",
+					"text": "var(--wp--preset--color--white)"
+				}
+			}
+		}
+	}
+}
