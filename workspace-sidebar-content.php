@@ -11,42 +11,21 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Get current workspace (taxonomy term)
-$queried_object = get_queried_object();
-$current_workspace = null;
+// Get current workspace using centralized helper (from plugin)
+// Falls back gracefully if plugin not active
+$plugin_active = function_exists('workspaces_get_current');
+$current_workspace = $plugin_active ? workspaces_get_current() : null;
+$workspace_data = $plugin_active ? workspaces_get_data($current_workspace) : null;
 
-// Determine the current workspace - check multiple sources in priority order
-
-// 1. Check URL query var first (set by rewrite rules for workspace-based URLs like /me/welcome/)
-$workspace_slug = get_query_var('workspace');
-if ($workspace_slug) {
-    $current_workspace = get_term_by('slug', $workspace_slug, 'workspace');
+// Get menu location - use workspace menu if available, otherwise fall back to 'primary' or 'sidebar'
+if ($plugin_active && $current_workspace) {
+    $workspace_menu_location = workspaces_get_menu_location($current_workspace);
+    $has_workspace_menu = $workspace_menu_location && has_nav_menu($workspace_menu_location);
+} else {
+    // Fallback to standard WordPress menu locations
+    $workspace_menu_location = has_nav_menu('sidebar') ? 'sidebar' : (has_nav_menu('primary') ? 'primary' : '');
+    $has_workspace_menu = !empty($workspace_menu_location);
 }
-
-// 2. If viewing a workspace taxonomy archive directly
-if (!$current_workspace && $queried_object instanceof WP_Term && $queried_object->taxonomy === 'workspace') {
-    $current_workspace = $queried_object;
-}
-
-// 3. Check if the current post has workspace terms assigned
-if (!$current_workspace && $queried_object && isset($queried_object->ID)) {
-    $terms = get_the_terms($queried_object->ID, 'workspace');
-    if ($terms && !is_wp_error($terms)) {
-        $current_workspace = $terms[0];
-    }
-}
-
-// 4. Fallback for legacy post types - use "My Hub" workspace
-if (!$current_workspace && $queried_object && isset($queried_object->post_type)) {
-    $legacy_types = array('lo_portal_page', 'frs_re_portal', 'frs_partner_portal');
-    if (in_array($queried_object->post_type, $legacy_types)) {
-        $current_workspace = get_term_by('slug', 'me', 'workspace');
-    }
-}
-
-// Get menu location for this workspace (auto-registered by workspaces plugin)
-$workspace_menu_location = $current_workspace ? 'workspace_' . $current_workspace->slug : '';
-$has_workspace_menu = $workspace_menu_location && has_nav_menu($workspace_menu_location);
 
 $current_user = wp_get_current_user();
 

@@ -481,6 +481,12 @@ class Workspace_Nav_Walker extends Walker_Nav_Menu {
 
 // Check if current page should use workspace frame
 function workspaces_is_workspace_page() {
+    // Use plugin helper if available
+    if (function_exists('workspaces_is_in_workspace')) {
+        return workspaces_is_in_workspace();
+    }
+
+    // Fallback detection if plugin not active
     $queried_object = get_queried_object();
 
     // Check if we're on a workspace taxonomy archive
@@ -492,14 +498,6 @@ function workspaces_is_workspace_page() {
     if ($queried_object && isset($queried_object->ID)) {
         $terms = get_the_terms($queried_object->ID, 'workspace');
         if ($terms && !is_wp_error($terms) && !empty($terms)) {
-            return true;
-        }
-    }
-
-    // Legacy portal post types (until migrated)
-    if ($queried_object && isset($queried_object->post_type)) {
-        $legacy_types = array('lo_portal_page', 'frs_re_portal', 'frs_partner_portal');
-        if (in_array($queried_object->post_type, $legacy_types)) {
             return true;
         }
     }
