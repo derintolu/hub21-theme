@@ -43,12 +43,16 @@ include get_stylesheet_directory() . '/workspace-sidebar-frame.php';
             $home_object = get_post($homepage_id);
             if ($home_object && $home_object->post_status === 'publish') {
                 // Show the designated home object content
+                global $post;
                 $post = $home_object;
                 setup_postdata($post);
                 ?>
                 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
                     <div class="entry-content">
-                        <?php the_content(); ?>
+                        <?php
+                        // Apply content filters for blocks, shortcodes, etc.
+                        echo apply_filters('the_content', $post->post_content);
+                        ?>
                     </div>
                 </article>
                 <?php
