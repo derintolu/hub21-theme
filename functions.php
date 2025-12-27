@@ -11,6 +11,13 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Load Tailwind CSS globally via CDN
+ */
+add_action('wp_head', function () {
+    echo '<script src="https://cdn.tailwindcss.com"></script>';
+}, 1);
+
+/**
  * Load child theme styles (Blocksy doesn't auto-load by default)
  */
 add_action('wp_enqueue_scripts', function () {

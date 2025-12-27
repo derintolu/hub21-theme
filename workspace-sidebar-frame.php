@@ -13,15 +13,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Enqueue Tailwind CSS for sidebar (scoped to sidebar only)
-add_action('wp_head', function() {
-    static $tailwind_loaded = false;
-    if (!$tailwind_loaded) {
-        echo '<script src="https://cdn.tailwindcss.com"></script>';
-        $tailwind_loaded = true;
-    }
-}, 1);
-
 $workspace_slug = get_query_var('workspace');
 $header_title = ($workspace_slug === 'learning') ? 'Learning' : get_the_title();
 ?>
