@@ -14,7 +14,19 @@ if (!defined('ABSPATH')) {
 }
 
 $workspace_slug = get_query_var('workspace');
-$header_title = ($workspace_slug === 'learning') ? 'Learning' : get_the_title();
+$workspace_object_slug = get_query_var('workspace_object');
+
+// Determine header title based on context
+if ($workspace_slug === 'learning') {
+    $header_title = 'Learning';
+} elseif ($workspace_slug && !$workspace_object_slug) {
+    // On workspace archive (e.g., /me/), use workspace term name
+    $workspace_term = get_term_by('slug', $workspace_slug, 'workspace');
+    $header_title = $workspace_term ? $workspace_term->name : ucfirst($workspace_slug);
+} else {
+    // On workspace object page, use the post title
+    $header_title = get_the_title();
+}
 ?>
 
 <div
@@ -32,10 +44,10 @@ $header_title = ($workspace_slug === 'learning') ? 'Learning' : get_the_title();
             aria-label="Toggle sidebar"
             data-wp-on--click="actions.toggleSidebar"
         >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
+            <svg class="ct-icon" width="18" height="14" viewBox="0 0 18 14" aria-hidden="true" data-type="type-3">
+                <rect y="0.00" width="18" height="1.7" rx="1"></rect>
+                <rect y="6.15" width="18" height="1.7" rx="1"></rect>
+                <rect y="12.3" width="18" height="1.7" rx="1"></rect>
             </svg>
         </button>
         <!-- Content Header -->
@@ -132,6 +144,25 @@ body.admin-bar .workspace-header-bar {
     background: rgba(0, 0, 0, 0.05);
 }
 
+/* Sidebar Toggle Icon - Match Blocksy type-3 style */
+.sidebar-toggle-btn .ct-icon {
+    fill: var(--wp--preset--color--workspace-dark, #0b102c);
+}
+
+.sidebar-toggle-btn .ct-icon[data-type] rect {
+    transform-origin: 50% 50%;
+    transition: 0.12s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+}
+
+.sidebar-toggle-btn .ct-icon[data-type="type-3"] rect:nth-child(1),
+.sidebar-toggle-btn .ct-icon[data-type="type-3"] rect:nth-child(3) {
+    width: 12px;
+}
+
+.sidebar-toggle-btn:hover .ct-icon {
+    fill: #0d9488; /* Teal with good contrast against grey header */
+}
+
 /* Offcanvas sidebar state - using body class for reliable targeting */
 body.sidebar-offcanvas .workspace-sidebar-frame {
     transform: translateX(-100%);
@@ -190,7 +221,7 @@ body.has-workspace-sidebar .site-main {
     margin-left: var(--workspace-sidebar-width);
     margin-top: 0;
     padding: var(--wp--preset--spacing--60, 2rem);
-    padding-top: calc(var(--workspace-bar-height) + var(--wp--preset--spacing--40, 1rem));
+    padding-top: calc(var(--workspace-bar-height) + var(--wp--preset--spacing--20, 0.5rem));
     min-height: calc(100vh - var(--workspace-header-height) - var(--workspace-bar-height));
     transition: var(--workspace-transition);
 }

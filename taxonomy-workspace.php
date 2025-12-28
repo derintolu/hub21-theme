@@ -13,21 +13,17 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-get_header();
-
-// Get current workspace term
-$workspace = get_queried_object();
-
-// Add body class for workspace sidebar
+// Add body class for workspace sidebar (must be before get_header)
 add_filter('body_class', function($classes) {
     $classes[] = 'has-workspace-sidebar';
     return $classes;
 });
-?>
 
-<?php
-// Include the sidebar frame (same as workspace objects)
-include get_stylesheet_directory() . '/workspace-sidebar-frame.php';
+get_header();
+
+// Get current workspace term
+$workspace = get_queried_object();
+// Note: Sidebar frame is included via blocksy:header:after hook in functions.php
 ?>
 
 <!-- Main Content Area -->

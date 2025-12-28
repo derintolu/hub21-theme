@@ -11,13 +11,6 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Load Tailwind CSS globally via CDN
- */
-add_action('wp_head', function () {
-    echo '<script src="https://cdn.tailwindcss.com"></script>';
-}, 1);
-
-/**
  * Load child theme styles (Blocksy doesn't auto-load by default)
  */
 add_action('wp_enqueue_scripts', function () {
@@ -805,3 +798,125 @@ add_action('after_setup_theme', function () {
         'workspace_menu' => __('Workspace Sidebar Menu', 'workspaces'),
     ));
 });
+
+/**
+ * Enqueue block assets for workspace homepage objects
+ *
+ * When a workspace has a custom homepage object set, we need to enqueue
+ * that object's block assets BEFORE the template renders. Otherwise,
+ * block styles won't be loaded since WordPress only auto-enqueues for
+ * the main queried object.
+ *
+ * This is especially important for Greenshift blocks which store their
+ * CSS in _gspb_post_css post meta.
+ */
+add_action('wp_enqueue_scripts', function () {
+    // Check if we're on a workspace archive (custom rewrite rule sets 'workspace' query var)
+    // but NOT on a single workspace_object (which also has 'workspace' query var)
+    $workspace_slug = get_query_var('workspace');
+    $workspace_object = get_query_var('workspace_object');
+
+    // If no workspace query var, or if viewing a workspace_object, skip
+    if (!$workspace_slug || $workspace_object) {
+        return;
+    }
+
+    // Get the workspace term
+    $workspace = get_term_by('slug', $workspace_slug, 'workspace');
+    if (!$workspace || is_wp_error($workspace)) {
+        return;
+    }
+
+    // Check if this workspace has a homepage object
+    $homepage_id = get_term_meta($workspace->term_id, '_workspace_homepage', true);
+    if (!$homepage_id) {
+        return;
+    }
+
+    $homepage_post = get_post($homepage_id);
+    if (!$homepage_post || $homepage_post->post_status !== 'publish') {
+        return;
+    }
+
+    // Load Greenshift CSS for the homepage object
+    // Greenshift stores compiled CSS in _gspb_post_css post meta
+    $gspb_css = get_post_meta($homepage_id, '_gspb_post_css', true);
+    if ($gspb_css) {
+        // Use Greenshift's helper if available, otherwise output raw
+        if (function_exists('gspb_get_final_css')) {
+            $gspb_css = gspb_get_final_css($gspb_css);
+        }
+        wp_register_style('greenshift-workspace-homepage-css', false);
+        wp_enqueue_style('greenshift-workspace-homepage-css');
+        wp_add_inline_style('greenshift-workspace-homepage-css', $gspb_css);
+    }
+
+    // Parse the homepage content for blocks and enqueue their assets
+    $blocks = parse_blocks($homepage_post->post_content);
+    workspaces_enqueue_block_assets_recursive($blocks);
+
+}, 20); // Run after default priority to ensure block registration is complete
+
+/**
+ * Recursively enqueue assets for blocks and their inner blocks
+ *
+ * @param array $blocks Array of parsed blocks
+ */
+function workspaces_enqueue_block_assets_recursive($blocks) {
+    foreach ($blocks as $block) {
+        if (!empty($block['blockName'])) {
+            // Enqueue block styles
+            $block_name = $block['blockName'];
+
+            // Get block type registry
+            $block_registry = WP_Block_Type_Registry::get_instance();
+            $block_type = $block_registry->get_registered($block_name);
+
+            if ($block_type) {
+                // Enqueue block styles if defined
+                if (!empty($block_type->style)) {
+                    $styles = is_array($block_type->style) ? $block_type->style : [$block_type->style];
+                    foreach ($styles as $style_handle) {
+                        wp_enqueue_style($style_handle);
+                    }
+                }
+
+                // Enqueue editor styles that might be needed on frontend
+                if (!empty($block_type->editor_style)) {
+                    // Skip editor-only styles
+                }
+
+                // Enqueue block scripts
+                if (!empty($block_type->script)) {
+                    $scripts = is_array($block_type->script) ? $block_type->script : [$block_type->script];
+                    foreach ($scripts as $script_handle) {
+                        wp_enqueue_script($script_handle);
+                    }
+                }
+
+                // Enqueue view scripts (frontend-only)
+                if (!empty($block_type->view_script)) {
+                    $view_scripts = is_array($block_type->view_script) ? $block_type->view_script : [$block_type->view_script];
+                    foreach ($view_scripts as $script_handle) {
+                        wp_enqueue_script($script_handle);
+                    }
+                }
+
+                // Enqueue view script modules (WP 6.5+)
+                if (!empty($block_type->view_script_module)) {
+                    $view_modules = is_array($block_type->view_script_module) ? $block_type->view_script_module : [$block_type->view_script_module];
+                    foreach ($view_modules as $module_handle) {
+                        if (function_exists('wp_enqueue_script_module')) {
+                            wp_enqueue_script_module($module_handle);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Recursively process inner blocks
+        if (!empty($block['innerBlocks'])) {
+            workspaces_enqueue_block_assets_recursive($block['innerBlocks']);
+        }
+    }
+}
