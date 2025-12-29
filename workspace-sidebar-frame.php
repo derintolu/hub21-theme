@@ -27,11 +27,25 @@ if ($workspace_slug === 'learning') {
     // On workspace object page, use the post title
     $header_title = get_the_title();
 }
+
+// Check if this is a course/learning page - sidebar should be collapsed by default
+// Includes: /learning/ workspace, /courses/, /lessons/, and Tutor LMS post types
+$is_course_page = (
+    $workspace_slug === 'learning' ||
+    is_singular('courses') ||
+    is_singular('lesson') ||
+    is_singular('tutor_quiz') ||
+    is_singular('tutor_assignments') ||
+    is_post_type_archive('courses')
+);
 ?>
 
 <div
     data-wp-interactive="workspaces/sidebar"
-    <?php echo wp_interactivity_data_wp_context(array('isCollapsed' => false)); ?>
+    <?php echo wp_interactivity_data_wp_context(array(
+        'isCollapsed' => $is_course_page,
+        'isCoursePage' => $is_course_page,
+    )); ?>
     data-wp-class--sidebar-offcanvas="context.isCollapsed"
     data-wp-init="callbacks.initFromStorage"
     class="workspace-frame-wrapper"
@@ -183,6 +197,15 @@ body.sidebar-offcanvas .workspace-header-bar {
 
 body.sidebar-offcanvas.has-workspace-sidebar .site-main {
     margin-left: 0;
+}
+
+/* Course/lesson pages - remove padding when sidebar is collapsed */
+body.sidebar-offcanvas.single-courses .site-main,
+body.sidebar-offcanvas.single-lesson .site-main,
+body.sidebar-offcanvas.single-tutor_quiz .site-main,
+body.sidebar-offcanvas.single-tutor_assignments .site-main {
+    padding: 0;
+    padding-top: var(--workspace-bar-height);
 }
 
 .workspace-page-title {

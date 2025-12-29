@@ -2,10 +2,12 @@
  * Workspace Sidebar - Interactivity API Store
  *
  * Handles sidebar toggle state with localStorage persistence
+ * Course pages default to collapsed, other pages default to expanded
  */
 import { store, getContext } from '@wordpress/interactivity';
 
 const STORAGE_KEY = 'workspace-sidebar-offcanvas';
+const STORAGE_KEY_COURSE = 'workspace-sidebar-offcanvas-course';
 
 store('workspaces/sidebar', {
     actions: {
@@ -14,15 +16,25 @@ store('workspaces/sidebar', {
             context.isCollapsed = !context.isCollapsed;
             // Also toggle body class for CSS targeting .site-main
             document.body.classList.toggle('sidebar-offcanvas', context.isCollapsed);
-            localStorage.setItem(STORAGE_KEY, context.isCollapsed);
+            // Use different storage key for course pages
+            const key = context.isCoursePage ? STORAGE_KEY_COURSE : STORAGE_KEY;
+            localStorage.setItem(key, context.isCollapsed);
         },
     },
     callbacks: {
         initFromStorage() {
             const context = getContext();
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved === 'true') {
-                context.isCollapsed = true;
+            const key = context.isCoursePage ? STORAGE_KEY_COURSE : STORAGE_KEY;
+            const saved = localStorage.getItem(key);
+
+            if (saved !== null) {
+                // Use saved preference
+                context.isCollapsed = saved === 'true';
+            }
+            // If no saved preference, use the default from PHP context
+            // (course pages default to collapsed, others to expanded)
+
+            if (context.isCollapsed) {
                 document.body.classList.add('sidebar-offcanvas');
             }
         },
