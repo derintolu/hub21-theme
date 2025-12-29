@@ -762,17 +762,8 @@ add_filter('body_class', function($classes) {
         $classes[] = 'workspace-frame';
     }
 
-    // Add sidebar-offcanvas class for course pages (sidebar collapsed by default)
-    $workspace_slug = get_query_var('workspace');
-    $is_course_page = (
-        $workspace_slug === 'learning' ||
-        is_singular('courses') ||
-        is_singular('lesson') ||
-        is_singular('tutor_quiz') ||
-        is_singular('tutor_assignments') ||
-        is_post_type_archive('courses')
-    );
-    if ($is_course_page) {
+    // Add sidebar-offcanvas class only for lesson pages (sidebar collapsed by default)
+    if (is_singular('lesson')) {
         $classes[] = 'sidebar-offcanvas';
     }
 

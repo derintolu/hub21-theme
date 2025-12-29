@@ -28,23 +28,15 @@ if ($workspace_slug === 'learning') {
     $header_title = get_the_title();
 }
 
-// Check if this is a course/learning page - sidebar should be collapsed by default
-// Includes: /learning/ workspace, /courses/, /lessons/, and Tutor LMS post types
-$is_course_page = (
-    $workspace_slug === 'learning' ||
-    is_singular('courses') ||
-    is_singular('lesson') ||
-    is_singular('tutor_quiz') ||
-    is_singular('tutor_assignments') ||
-    is_post_type_archive('courses')
-);
+// Only collapse sidebar by default on actual lesson pages (not /learning/ workspace or course archives)
+$is_lesson_page = is_singular('lesson');
 ?>
 
 <div
     data-wp-interactive="workspaces/sidebar"
     <?php echo wp_interactivity_data_wp_context(array(
-        'isCollapsed' => $is_course_page,
-        'isCoursePage' => $is_course_page,
+        'isCollapsed' => $is_lesson_page,
+        'isLessonPage' => $is_lesson_page,
     )); ?>
     data-wp-class--sidebar-offcanvas="context.isCollapsed"
     data-wp-init="callbacks.initFromStorage"
