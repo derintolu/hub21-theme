@@ -170,7 +170,7 @@ add_action('admin_notices', function() {
  */
 add_action('admin_menu', function() {
     add_submenu_page(
-        null, // Hidden from menu
+        '', // Hidden from menu (use empty string, not null)
         'Insert Insights Slider',
         'Insert Insights Slider',
         'manage_options',

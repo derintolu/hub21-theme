@@ -105,7 +105,7 @@ if (in_array('loan_officer', $user_roles)) {
 }
 ?>
 
-<div id="workspace-sidebar-root" class="overflow-hidden scrollbar-hide flex flex-col" style="height: calc(100dvh - 60px); background-color: #0B102C;">
+<div id="workspace-sidebar-root" class="scrollbar-hide flex flex-col" style="height: calc(100dvh - 60px); background-color: #0B102C;">
 
     <!-- 16:9 Header Widget Area -->
     <div class="workspace-sidebar-header-widget">
@@ -134,7 +134,7 @@ if (in_array('loan_officer', $user_roles)) {
             if ($show_learning_menu && class_exists('Workspaces_Tutor_Dashboard')) :
                 $tutor_dashboard = Workspaces_Tutor_Dashboard::instance();
                 $sections = $tutor_dashboard->get_dashboard_sections();
-                $dashboard_url = home_url('/learning/');
+                $dashboard_url = $current_workspace ? home_url('/' . $current_workspace->slug . '/') : home_url('/learning/');
                 $current_hash = '';
 
                 // Get current section from URL hash (for active state)
@@ -169,6 +169,29 @@ if (in_array('loan_officer', $user_roles)) {
                 $is_admin = current_user_can('manage_options');
                 $show_instructor_menu = $sections['is_instructor'] || $is_admin;
 
+                // Get custom menu items from Tutor integration
+                $custom_menu_items = array();
+                if (class_exists('Workspaces_Tutor_Integration')) {
+                    $tutor_integration = Workspaces_Tutor_Integration::instance();
+                    $custom_menu_items = $tutor_integration->get_learning_custom_menu_items();
+                }
+
+                // Render custom menu items with position 'before'
+                foreach ($custom_menu_items as $item) :
+                    if (($item['position'] ?? 'before') !== 'before') continue;
+                    $item_icon = $item['icon'] ?? 'link';
+                    $item_icon_html = class_exists('Lucide_Icons') ? Lucide_Icons::render($item_icon, 20) : '';
+                    $item_target = !empty($item['target']) ? $item['target'] : '';
+                ?>
+                    <a href="<?php echo esc_url($item['url']); ?>"
+                       class="flex items-center gap-2 px-4 py-3 text-white/70 hover:text-white transition-colors frs-nav-link"
+                       <?php echo $item_target ? 'target="' . esc_attr($item_target) . '"' : ''; ?>>
+                        <?php echo $item_icon_html; ?>
+                        <span><?php echo esc_html($item['title']); ?></span>
+                    </a>
+                <?php endforeach; ?>
+
+                <?php
                 // Student sections
                 foreach ($sections['student'] as $key => $section) :
                     $href = $dashboard_url . '#' . $section['key'];
@@ -214,29 +237,48 @@ if (in_array('loan_officer', $user_roles)) {
                     </div>
                 <?php endif; ?>
 
-            <?php elseif ($has_workspace_menu) : ?>
                 <?php
-                wp_nav_menu(array(
-                    'theme_location' => $workspace_menu_location,
-                    'container'      => false,
-                    'items_wrap'     => '%3$s',
-                    'walker'         => new Workspace_Nav_Walker(),
-                    'fallback_cb'    => false,
-                ));
+                // Render custom menu items with position 'after'
+                foreach ($custom_menu_items as $item) :
+                    if (($item['position'] ?? 'before') !== 'after') continue;
+                    $item_icon = $item['icon'] ?? 'link';
+                    $item_icon_html = class_exists('Lucide_Icons') ? Lucide_Icons::render($item_icon, 20) : '';
+                    $item_target = !empty($item['target']) ? $item['target'] : '';
                 ?>
+                    <a href="<?php echo esc_url($item['url']); ?>"
+                       class="flex items-center gap-2 px-4 py-3 text-white/70 hover:text-white transition-colors frs-nav-link"
+                       <?php echo $item_target ? 'target="' . esc_attr($item_target) . '"' : ''; ?>>
+                        <?php echo $item_icon_html; ?>
+                        <span><?php echo esc_html($item['title']); ?></span>
+                    </a>
+                <?php endforeach; ?>
+
             <?php else : ?>
-                <div class="px-4 py-3 text-xs text-white/50">
-                    <?php
-                    if ($current_workspace) {
+                <?php
+                // Show nav menu from workspace location
+                if ($has_workspace_menu) :
+                    wp_nav_menu(array(
+                        'theme_location' => $workspace_menu_location,
+                        'container'      => false,
+                        'items_wrap'     => '%3$s',
+                        'walker'         => new Workspace_Nav_Walker(),
+                        'fallback_cb'    => false,
+                    ));
+                elseif ($current_workspace) : ?>
+                    <div class="px-4 py-3 text-xs text-white/50">
+                        <?php
                         printf(
-                            __('No menu assigned. Go to Appearance → Menus and assign a menu to "Workspace: %s"', 'workspaces'),
+                            __('No menu assigned to "%s". Go to Appearance → Menus and assign a menu to "Workspace: %s"', 'workspaces'),
+                            esc_html($current_workspace->name),
                             esc_html($current_workspace->name)
                         );
-                    } else {
-                        _e('No workspace detected for this page.', 'workspaces');
-                    }
-                    ?>
-                </div>
+                        ?>
+                    </div>
+                <?php else : ?>
+                    <div class="px-4 py-3 text-xs text-white/50">
+                        <?php _e('No workspace detected for this page.', 'workspaces'); ?>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </nav>
 
@@ -265,21 +307,87 @@ if (in_array('loan_officer', $user_roles)) {
             </div>
 
             <!-- Profile Header with Avatar (Horizontal Layout) - Bottom -->
-            <div class="relative w-full h-20 px-4 flex items-center gap-3" style="background-color: #0B102C;">
-                <!-- Glassy overlay -->
-                <div class="absolute inset-0" style="z-index: 1; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);"></div>
+            <div class="user-menu-wrapper relative w-full">
+                <!-- User Menu Trigger -->
+                <button
+                    type="button"
+                    onclick="toggleUserMenu(event)"
+                    class="user-menu-trigger relative w-full h-20 px-4 flex items-center gap-3 cursor-pointer border-0 text-left transition-all hover:bg-white/5"
+                    style="background-color: #0B102C;"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                >
+                    <!-- Glassy overlay -->
+                    <div class="absolute inset-0" style="z-index: 1; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);"></div>
 
-                <!-- Avatar -->
-                <div class="relative flex-shrink-0" style="z-index: 10;">
-                    <div class="w-[42px] h-[42px] rounded-full overflow-hidden shadow-lg border-2 border-white/20">
-                        <img src="<?php echo esc_url($user_avatar); ?>" alt="<?php echo esc_attr($user_name); ?>" class="w-full h-full object-cover">
+                    <!-- Avatar -->
+                    <div class="relative flex-shrink-0" style="z-index: 10;">
+                        <div class="w-[42px] h-[42px] rounded-full overflow-hidden shadow-lg border-2 border-white/20">
+                            <img src="<?php echo esc_url($user_avatar); ?>" alt="<?php echo esc_attr($user_name); ?>" class="w-full h-full object-cover">
+                        </div>
                     </div>
-                </div>
 
-                <!-- Name and Title -->
-                <div class="relative flex-1 min-w-0" style="z-index: 10;">
-                    <h3 class="font-bold text-white text-base mb-0.5 truncate"><?php echo esc_html($user_name); ?></h3>
-                    <p class="font-normal text-white/70 text-sm truncate"><?php echo esc_html($user_job_title); ?></p>
+                    <!-- Name and Title -->
+                    <div class="relative flex-1 min-w-0" style="z-index: 10;">
+                        <h3 class="font-bold text-white text-base mb-0.5 truncate"><?php echo esc_html($user_name); ?></h3>
+                        <p class="font-normal text-white/70 text-sm truncate"><?php echo esc_html($user_job_title); ?></p>
+                    </div>
+
+                    <!-- Chevron Icon -->
+                    <div class="relative flex-shrink-0" style="z-index: 10;">
+                        <svg id="user-menu-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/70 transition-transform duration-200">
+                            <path d="m18 15-6-6-6 6"/>
+                        </svg>
+                    </div>
+                </button>
+
+                <!-- User Popup Menu (fixed positioning to escape overflow container) -->
+                <div id="user-popup-menu" class="user-popup-menu fixed rounded-lg overflow-hidden shadow-xl" style="display: none; background: #1a1f3c; border: 1px solid rgba(255,255,255,0.1); width: 288px; z-index: 9999;">
+                    <?php if (has_nav_menu('user_menu')) : ?>
+                        <nav class="user-menu-nav py-2">
+                            <?php
+                            wp_nav_menu(array(
+                                'theme_location' => 'user_menu',
+                                'container'      => false,
+                                'items_wrap'     => '%3$s',
+                                'walker'         => new User_Menu_Walker(),
+                                'fallback_cb'    => false,
+                            ));
+                            ?>
+                        </nav>
+                        <div class="border-t border-white/10"></div>
+                    <?php endif; ?>
+
+                    <?php if (is_user_logged_in()) : ?>
+                        <!-- Settings link for logged-in users -->
+                        <div class="py-2">
+                            <?php 
+                            $settings_url = $current_workspace 
+                                ? home_url('/' . $current_workspace->slug . '/settings/') 
+                                : home_url('/me/settings/');
+                            ?>
+                            <a href="<?php echo esc_url($settings_url); ?>" class="flex items-center gap-3 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                                <?php echo class_exists('Lucide_Icons') ? Lucide_Icons::render('settings', 18) : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>'; ?>
+                                <span class="text-sm"><?php esc_html_e('Settings', 'workspaces'); ?></span>
+                            </a>
+                        </div>
+                        <div class="border-t border-white/10"></div>
+                        <!-- Logout link -->
+                        <div class="py-2">
+                            <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>" class="flex items-center gap-3 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                                <?php echo class_exists('Lucide_Icons') ? Lucide_Icons::render('log-out', 18) : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>'; ?>
+                                <span class="text-sm"><?php esc_html_e('Log out', 'workspaces'); ?></span>
+                            </a>
+                        </div>
+                    <?php else : ?>
+                        <!-- Login link for logged-out users - triggers Blocksy modal -->
+                        <div class="py-2">
+                            <a href="#account-modal" data-toggle-panel="account-modal" class="flex items-center gap-3 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                                <?php echo class_exists('Lucide_Icons') ? Lucide_Icons::render('log-in', 18) : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>'; ?>
+                                <span class="text-sm"><?php esc_html_e('Log in', 'workspaces'); ?></span>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -288,6 +396,46 @@ if (in_array('loan_officer', $user_roles)) {
 </div>
 
 <script>
+// Toggle menu submenu visibility (for nav walker dropdowns)
+window.toggleMenu = function(menuId, event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const submenu = document.getElementById('menu-' + menuId);
+    const button = event.currentTarget;
+    const chevron = button.querySelector('.frs-chevron');
+
+    if (!submenu) return;
+
+    const isHidden = submenu.style.display === 'none' || submenu.style.display === '';
+
+    if (isHidden) {
+        submenu.style.display = 'block';
+        if (chevron) chevron.style.transform = 'rotate(90deg)';
+    } else {
+        submenu.style.display = 'none';
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+};
+
+// Toggle workspace section visibility (for submenu display type)
+window.toggleSection = function(sectionId) {
+    const section = document.getElementById(sectionId);
+    const chevron = document.getElementById('chevron-' + sectionId);
+    
+    if (!section) return;
+    
+    const isHidden = section.style.display === 'none' || section.style.display === '';
+    
+    if (isHidden) {
+        section.style.display = 'block';
+        if (chevron) chevron.style.transform = 'rotate(90deg)';
+    } else {
+        section.style.display = 'none';
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+};
+
 // Toggle instructor submenu visibility - attached to window for global access
 window.toggleInstructorMenu = function(event) {
     event.preventDefault();
@@ -308,6 +456,65 @@ window.toggleInstructorMenu = function(event) {
         if (chevron) chevron.style.transform = 'rotate(0deg)';
     }
 };
+
+// Toggle user popup menu visibility
+window.toggleUserMenu = function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const menu = document.getElementById('user-popup-menu');
+    const chevron = document.getElementById('user-menu-chevron');
+    const trigger = event.currentTarget;
+
+    if (!menu) return;
+
+    const isHidden = menu.style.display === 'none' || menu.style.display === '';
+
+    if (isHidden) {
+        // Position the fixed menu above the trigger button
+        const triggerRect = trigger.getBoundingClientRect();
+        menu.style.left = triggerRect.left + 'px';
+        menu.style.bottom = (window.innerHeight - triggerRect.top + 4) + 'px';
+        menu.style.display = 'block';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (trigger) trigger.setAttribute('aria-expanded', 'true');
+
+        // Close menu when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', closeUserMenuOnClickOutside);
+        }, 0);
+    } else {
+        closeUserMenu();
+    }
+};
+
+// Close user menu helper
+function closeUserMenu() {
+    const menu = document.getElementById('user-popup-menu');
+    const chevron = document.getElementById('user-menu-chevron');
+    const trigger = document.querySelector('.user-menu-trigger');
+
+    if (menu) menu.style.display = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+
+    document.removeEventListener('click', closeUserMenuOnClickOutside);
+}
+
+// Close menu when clicking outside
+function closeUserMenuOnClickOutside(event) {
+    const wrapper = document.querySelector('.user-menu-wrapper');
+    if (wrapper && !wrapper.contains(event.target)) {
+        closeUserMenu();
+    }
+}
+
+// Close menu on escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeUserMenu();
+    }
+});
 
 // Set active link based on current URL
 function setActiveLink() {
@@ -341,6 +548,29 @@ document.addEventListener('wp-router-navigated', setActiveLink);
     if (instructorWrapper) {
         instructorWrapper.addEventListener('click', function(e) {
             window.toggleInstructorMenu(e);
+        });
+    }
+})();
+
+// Handle login link click to trigger Blocksy account modal
+(function() {
+    const loginLink = document.querySelector('a[data-toggle-panel="account-modal"]');
+    if (loginLink) {
+        loginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Close the user popup menu first
+            closeUserMenu();
+
+            // Trigger Blocksy's panel system if available
+            if (window.ctEvents) {
+                const modal = document.getElementById('account-modal');
+                if (modal) {
+                    window.ctEvents.trigger('ct:overlay:handle-click', {
+                        options: { container: modal }
+                    });
+                }
+            }
         });
     }
 })();
@@ -402,6 +632,51 @@ document.addEventListener('wp-router-navigated', setActiveLink);
 
 .instructor-dropdown-wrapper:hover .frs-nav-link {
     color: white !important;
+}
+
+/* User menu wrapper */
+.user-menu-wrapper {
+    position: relative;
+}
+
+/* User menu trigger button */
+.user-menu-trigger {
+    width: 100%;
+    font-family: inherit;
+}
+
+.user-menu-trigger:focus {
+    outline: none;
+}
+
+.user-menu-trigger:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.3);
+    outline-offset: -2px;
+}
+
+/* User popup menu */
+.user-popup-menu {
+    z-index: 100;
+    animation: slideUp 0.15s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-popup-menu a {
+    text-decoration: none;
+}
+
+.user-popup-menu a:hover {
+    text-decoration: none;
 }
 
 /* CSS View Transitions */

@@ -475,6 +475,40 @@ class Workspace_Nav_Walker extends Walker_Nav_Menu {
 }
 
 /**
+ * Custom Nav Walker for User Popup Menu
+ * Simple walker for the user dropdown menu with icons
+ */
+class User_Menu_Walker extends Walker_Nav_Menu {
+    /**
+     * Start element output
+     */
+    public function start_el(&$output, $item, $depth = 0, $args = null, $id = 0) {
+        // Get icon from menu item meta
+        $icon_name = get_post_meta($item->ID, '_menu_item_icon', true);
+        $is_active = in_array('current-menu-item', $item->classes);
+        $active_class = $is_active ? ' bg-white/10' : '';
+
+        // Icon markup using Lucide
+        $icon_html = '';
+        if ($icon_name && class_exists('Lucide_Icons')) {
+            $icon_html = Lucide_Icons::render($icon_name, 18);
+        }
+
+        $output .= '<a href="' . esc_url($item->url) . '" class="flex items-center gap-3 px-4 py-2.5 text-white/70 hover:text-white hover:bg-white/5 transition-colors' . $active_class . '">';
+        $output .= $icon_html;
+        $output .= '<span class="text-sm">' . esc_html($item->title) . '</span>';
+        $output .= '</a>';
+    }
+
+    /**
+     * End element (no closing tag needed)
+     */
+    public function end_el(&$output, $item, $depth = 0, $args = null) {
+        // No closing tag needed
+    }
+}
+
+/**
  * Workspace Frame Layout
  * Creates an app-like shell with logo section, top bar, sidebar, and content area
  */
@@ -813,11 +847,12 @@ add_action('wp_enqueue_scripts', function() {
 });
 
 /**
- * Register workspace menu location
+ * Register workspace menu locations
  */
 add_action('after_setup_theme', function () {
     register_nav_menus(array(
         'workspace_menu' => __('Workspace Sidebar Menu', 'workspaces'),
+        'user_menu' => __('User Popup Menu', 'workspaces'),
     ));
 });
 
@@ -878,6 +913,59 @@ add_action('wp_enqueue_scripts', function () {
     workspaces_enqueue_block_assets_recursive($blocks);
 
 }, 20); // Run after default priority to ensure block registration is complete
+
+/**
+ * Render Blocksy account modal for login popup
+ *
+ * Blocksy's account modal normally only renders when there's an account
+ * header element with modal login enabled. Since we want to trigger it
+ * from the sidebar, we need to manually ensure the modal is rendered.
+ */
+add_filter('blocksy:footer:offcanvas-drawer', function($els, $payload) {
+    // Only at the start location
+    if ($payload['location'] !== 'start') {
+        return $els;
+    }
+
+    // Only for logged-out users
+    if (is_user_logged_in()) {
+        return $els;
+    }
+
+    // Check if Blocksy Companion Pro is active
+    if (!class_exists('Blocksy\Plugin') || !function_exists('blocksy_render_view')) {
+        return $els;
+    }
+
+    // Check if modal is already being rendered by Blocksy
+    foreach ($els as $el) {
+        if (strpos($el, 'id="account-modal"') !== false) {
+            return $els; // Modal already added
+        }
+    }
+
+    // Render the account modal with default settings
+    $modal_path = WP_PLUGIN_DIR . '/blocksy-companion-pro/framework/features/header/account-modal.php';
+    if (!file_exists($modal_path)) {
+        return $els;
+    }
+
+    $atts = [
+        'account_close_button_type' => 'type-1'
+    ];
+
+    $html = blocksy_render_view($modal_path, [
+        'current_url' => blocksy_current_url(),
+        'header_id' => null,
+        'atts' => $atts
+    ]);
+
+    if ($html) {
+        $els[] = $html;
+    }
+
+    return $els;
+}, 20, 2);
 
 /**
  * Recursively enqueue assets for blocks and their inner blocks

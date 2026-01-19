@@ -149,12 +149,13 @@ Text Domain: workspaces
     }
 
     /* Make the internal content scrollable - override Blocksy's sticky */
+    /* Uses Blocksy's --header-sticky-height when sticky, --header-height otherwise */
     [data-sidebar="left"] > aside .ct-sidebar,
     [data-sidebar="right"] > aside .ct-sidebar {
         position: relative !important;
         top: auto !important;
-        height: calc(100vh - 80px) !important;
-        max-height: calc(100vh - 80px) !important;
+        height: calc(100vh - var(--header-sticky-height, var(--header-height, 80px))) !important;
+        max-height: calc(100vh - var(--header-sticky-height, var(--header-height, 80px))) !important;
         overflow-y: scroll !important;
         overflow-x: hidden !important;
         padding-bottom: 40px !important;
