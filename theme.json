@@ -11,26 +11,6 @@
 		"color": {
 			"palette": [
 				{
-					"slug": "dark-charcoal",
-					"color": "#171A1F",
-					"name": "Dark Charcoal"
-				},
-				{
-					"slug": "navy-base",
-					"color": "#263042",
-					"name": "Navy Base"
-				},
-				{
-					"slug": "steel-gray",
-					"color": "#444B57",
-					"name": "Steel Gray"
-				},
-				{
-					"slug": "blue-gray",
-					"color": "#405C7A",
-					"name": "Blue Gray"
-				},
-				{
 					"slug": "primary-blue",
 					"color": "#2563EB",
 					"name": "Primary Blue"
@@ -69,6 +49,26 @@
 					"slug": "pure-white",
 					"color": "#FFFFFF",
 					"name": "Pure White"
+				},
+				{
+					"slug": "blue-gray",
+					"color": "#405C7A",
+					"name": "Blue Gray"
+				},
+				{
+					"slug": "steel-gray",
+					"color": "#444B57",
+					"name": "Steel Gray"
+				},
+				{
+					"slug": "navy-base",
+					"color": "#263042",
+					"name": "Navy Base"
+				},
+				{
+					"slug": "dark-charcoal",
+					"color": "#171A1F",
+					"name": "Dark Charcoal"
 				},
 				{
 					"slug": "success",
@@ -349,7 +349,7 @@
 				"width": "320px",
 				"widthCollapsed": "64px",
 				"background": "#0B102C",
-				"headerHeight": "80px",
+				"headerHeight": "60px",
 				"portalHeaderHeight": "60px",
 				"zIndex": "100",
 				"transition": "all 0.3s ease"
