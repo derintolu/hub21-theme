@@ -14,7 +14,18 @@ if (!defined('ABSPATH')) {
  * Load child theme styles (Blocksy doesn't auto-load by default)
  */
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('workspaces-style', get_stylesheet_uri());
+    // Tailwind CSS (compiled)
+    $tailwind_path = get_stylesheet_directory() . '/assets/css/tailwind.css';
+    if (file_exists($tailwind_path)) {
+        wp_enqueue_style(
+            'hub21-tailwind',
+            get_stylesheet_directory_uri() . '/assets/css/tailwind.css',
+            [],
+            filemtime($tailwind_path)
+        );
+    }
+
+    wp_enqueue_style('workspaces-style', get_stylesheet_uri(), ['hub21-tailwind']);
 
     // Enqueue Interactivity API for workspace navigation
     if (function_exists('workspaces_is_workspace_page') && workspaces_is_workspace_page()) {

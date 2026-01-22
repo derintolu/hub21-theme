@@ -1,0 +1,13 @@
+{
+  "name": "hub21-theme",
+  "version": "1.0.0",
+  "description": "Hub21 WordPress theme with Tailwind CSS",
+  "private": true,
+  "scripts": {
+    "dev": "tailwindcss -i ./src/input.css -o ./assets/css/tailwind.css --watch",
+    "build": "tailwindcss -i ./src/input.css -o ./assets/css/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

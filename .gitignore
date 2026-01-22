@@ -2,9 +2,8 @@
 node_modules/
 vendor/
 
-# Build outputs
-assets/sidebar/
-production/
+# Build outputs - DO NOT ignore, these are deployed
+# assets/css/tailwind.css is committed for production
 
 # OS files
 .DS_Store
